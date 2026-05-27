@@ -48,14 +48,19 @@ jobs:
             echo "desc=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
           fi
 
+      - name: Write private key to file
+        run: echo "${{ secrets.WX_UPLOAD_KEY }}" > /tmp/private.key
+
       - name: Deploy to WeChat
-        uses: nicepkg/weapp-deploy@v1
-        with:
-          appid: ${{ secrets.WX_APPID }}
-          privateKey: ${{ secrets.WX_UPLOAD_KEY }}
-          projectPath: dist/build/mp-weixin
-          version: ${{ steps.version.outputs.version }}
-          desc: ${{ steps.version.outputs.desc }}
+        run: |
+          npx miniprogram-ci upload \
+            --pp dist/build/mp-weixin \
+            --pkp /tmp/private.key \
+            --appid ${{ secrets.WX_APPID }} \
+            --uv "${{ steps.version.outputs.version }}" \
+            --desc "${{ steps.version.outputs.desc }}" \
+            --enable-es6 true \
+            --enable-minify true
 
       - name: Create Release
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
