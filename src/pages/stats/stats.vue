@@ -53,6 +53,11 @@ function getBarHeight(calories: number): string {
   const height = (calories / max) * 200
   return height + 'rpx'
 }
+
+function calcNutritionPercent(value: number, total: number): string {
+  if (total <= 0) return '0%'
+  return (value / total) * 100 + '%'
+}
 </script>
 
 <template>
@@ -93,7 +98,7 @@ function getBarHeight(calories: number): string {
       </view>
     </view>
 
-    <view class="chart-card" v-if="stats?.dailyBreakdown">
+    <view class="chart-card" v-if="stats?.dailyBreakdown?.length">
       <view class="chart-title">热量趋势</view>
       <view class="chart-container">
         <view class="chart-bars">
@@ -118,10 +123,10 @@ function getBarHeight(calories: number): string {
             <view
               class="progress-fill protein"
               :style="{
-                width:
-                  (stats.totalProtein / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
-                    100 +
-                  '%',
+                width: calcNutritionPercent(
+                  stats.totalProtein,
+                  stats.totalProtein + stats.totalFat + stats.totalCarbs,
+                ),
               }"
             ></view>
           </view>
@@ -135,10 +140,10 @@ function getBarHeight(calories: number): string {
             <view
               class="progress-fill fat"
               :style="{
-                width:
-                  (stats.totalFat / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
-                    100 +
-                  '%',
+                width: calcNutritionPercent(
+                  stats.totalFat,
+                  stats.totalProtein + stats.totalFat + stats.totalCarbs,
+                ),
               }"
             ></view>
           </view>
@@ -152,10 +157,10 @@ function getBarHeight(calories: number): string {
             <view
               class="progress-fill carbs"
               :style="{
-                width:
-                  (stats.totalCarbs / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
-                    100 +
-                  '%',
+                width: calcNutritionPercent(
+                  stats.totalCarbs,
+                  stats.totalProtein + stats.totalFat + stats.totalCarbs,
+                ),
               }"
             ></view>
           </view>

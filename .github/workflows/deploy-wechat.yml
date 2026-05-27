@@ -29,7 +29,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Build for WeChat
         run: npm run build:mp-weixin
@@ -49,13 +49,15 @@ jobs:
           fi
 
       - name: Write private key to file
-        run: echo "${{ secrets.WX_UPLOAD_KEY }}" > /tmp/private.key
+        run: |
+          echo "${{ secrets.WX_UPLOAD_KEY }}" > "$RUNNER_TEMP/private.key"
+          chmod 600 "$RUNNER_TEMP/private.key"
 
       - name: Deploy to WeChat
         run: |
           npx miniprogram-ci upload \
             --pp dist/build/mp-weixin \
-            --pkp /tmp/private.key \
+            --pkp "$RUNNER_TEMP/private.key" \
             --appid ${{ secrets.WX_APPID }} \
             --uv "${{ steps.version.outputs.version }}" \
             --desc "${{ steps.version.outputs.desc }}" \

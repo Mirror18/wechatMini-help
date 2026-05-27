@@ -57,8 +57,14 @@ async function deleteRecord(id: string) {
     content: '确定要删除这条记录吗？',
     success: async (res) => {
       if (res.confirm) {
-        await foodStore.deleteRecord(id)
-        loadRecords()
+        try {
+          await foodStore.deleteRecord(id)
+          loadRecords()
+          uni.showToast({ title: '删除成功', icon: 'success' })
+        } catch (error) {
+          console.error('删除失败:', error)
+          uni.showToast({ title: '删除失败', icon: 'none' })
+        }
       }
     },
   })

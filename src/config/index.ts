@@ -10,3 +10,10 @@ export const config = {
     version: '0.1.0',
   },
 }
+
+// 环境变量校验
+if (!config.baiduAI.apiKey || !config.baiduAI.secretKey) {
+  console.warn(
+    '[配置] VITE_BAIDU_AI_API_KEY 或 VITE_BAIDU_AI_SECRET_KEY 未设置，百度AI识别功能将不可用',
+  )
+}

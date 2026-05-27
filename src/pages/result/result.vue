@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useFoodStore } from '@/stores'
+import { useFoodStore, useUserStore } from '@/stores'
 import { getToday } from '@/utils/date'
 import type { BaiduAIDishResult, MealType } from '@/types'
 
 const foodStore = useFoodStore()
+const userStore = useUserStore()
 
 const image = ref('')
 const results = ref<BaiduAIDishResult[]>([])
@@ -13,12 +14,20 @@ const mealType = ref<MealType>('lunch')
 const saving = ref(false)
 
 onMounted(() => {
-  const pages = getCurrentPages()
-  const currentPage = pages[pages.length - 1] as any
-  const data = JSON.parse(decodeURIComponent(currentPage.options?.data || '{}'))
+  try {
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1] as any
+    const data = JSON.parse(decodeURIComponent(currentPage.options?.data || '{}'))
 
-  image.value = data.image || ''
-  results.value = data.results || []
+    image.value = data.image || ''
+    results.value = data.results || []
+  } catch (error) {
+    console.error('解析页面参数失败:', error)
+    uni.showToast({
+      title: '数据异常',
+      icon: 'none',
+    })
+  }
 })
 
 const selectedResult = computed(() => results.value[selectedIndex.value])
@@ -38,7 +47,7 @@ async function handleSave() {
     saving.value = true
 
     await foodStore.addRecord({
-      userId: '',
+      userId: userStore.openid,
       foodName: selectedResult.value.name,
       calories: parseFloat(selectedResult.value.calorie) || 0,
       protein: 0,

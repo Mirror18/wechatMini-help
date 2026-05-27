@@ -14,7 +14,7 @@ export function chooseImage(count: number = 1): Promise<string[]> {
     uni.chooseImage({
       count,
       sizeType: ['compressed'],
-      sourceType: ['camera', 'album'],
+      sourceType: ['camera'],
       success: (res) => resolve(res.tempFilePaths as string[]),
       fail: (err) => reject(err),
     })

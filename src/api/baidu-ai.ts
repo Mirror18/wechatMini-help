@@ -3,15 +3,19 @@ import type { BaiduAITokenResponse, BaiduAIDishResponse } from '@/types'
 
 let accessToken = ''
 let tokenExpireTime = 0
+let pendingToken: Promise<string> | null = null
 
 export async function getAccessToken(): Promise<string> {
   if (accessToken && Date.now() < tokenExpireTime) {
     return accessToken
   }
 
+  // 避免并发重复刷新 token
+  if (pendingToken) return pendingToken
+
   const { apiKey, secretKey, tokenUrl } = config.baiduAI
 
-  const response = await new Promise<BaiduAITokenResponse>((resolve, reject) => {
+  pendingToken = new Promise<BaiduAITokenResponse>((resolve, reject) => {
     uni.request({
       url: `${tokenUrl}?grant_type=client_credentials&client_id=${apiKey}&client_secret=${secretKey}`,
       method: 'GET',
@@ -19,11 +23,18 @@ export async function getAccessToken(): Promise<string> {
       fail: (err) => reject(err),
     })
   })
+    .then((response) => {
+      accessToken = response.access_token
+      tokenExpireTime = Date.now() + (response.expires_in - 60) * 1000
+      pendingToken = null
+      return accessToken
+    })
+    .catch((err) => {
+      pendingToken = null
+      throw err
+    })
 
-  accessToken = response.access_token
-  tokenExpireTime = Date.now() + (response.expires_in - 60) * 1000
-
-  return accessToken
+  return pendingToken
 }
 
 export async function recognizeDish(base64Image: string): Promise<BaiduAIDishResponse> {

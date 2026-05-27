@@ -4,7 +4,15 @@ const db = uniCloud.database();
 
 exports.main = async (event, context) => {
   const { action, ...data } = event;
-  const { OPENID } = context.auth || {};
+  // 必须通过微信认证
+  const { OPENID } = context.auth;
+  if (!OPENID) {
+    return {
+      code: -1,
+      message: '未授权访问',
+      data: null
+    };
+  }
   
   try {
     const recordCollection = db.collection('food_records');
@@ -14,7 +22,7 @@ exports.main = async (event, context) => {
         const { record } = data;
         const result = await recordCollection.add({
           ...record,
-          userId: OPENID || record.userId,
+          userId: OPENID,
           createdAt: new Date()
         });
         
@@ -27,7 +35,7 @@ exports.main = async (event, context) => {
       
       case 'list': {
         const { date } = data;
-        const userId = OPENID || data.userId;
+        const userId = OPENID;
         
         const { data: records } = await recordCollection.where({
           userId: userId,
@@ -45,6 +53,18 @@ exports.main = async (event, context) => {
       
       case 'delete': {
         const { id } = data;
+        // 校验记录所有权后再删除
+        const { data: records } = await recordCollection.where({
+          _id: id,
+          userId: OPENID
+        }).get();
+        if (records.length === 0) {
+          return {
+            code: -1,
+            message: '记录不存在或无权限删除',
+            data: null
+          };
+        }
         await recordCollection.doc(id).remove();
         
         return {
@@ -56,7 +76,7 @@ exports.main = async (event, context) => {
       
       case 'stats': {
         const { startDate, endDate } = data;
-        const userId = OPENID || data.userId;
+        const userId = OPENID;
         
         const { data: records } = await recordCollection.where({
           userId: userId,

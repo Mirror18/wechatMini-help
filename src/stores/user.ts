@@ -18,7 +18,8 @@ export const useUserStore = defineStore('user', () => {
         data: { code },
       })
 
-      openid.value = result.openid
+      if (result.code !== 0) throw new Error(result.message || '登录失败')
+      openid.value = result.data.openid
       await fetchProfile()
     } catch (error) {
       console.error('登录失败:', error)
@@ -40,7 +41,7 @@ export const useUserStore = defineStore('user', () => {
         },
       })
 
-      profile.value = result
+      profile.value = result.code === 0 ? result.data : null
     } catch (error) {
       console.error('获取用户信息失败:', error)
     }

@@ -30,8 +30,9 @@ export const useFoodStore = defineStore('food', () => {
         },
       })
 
+      if (result.code !== 0) throw new Error(result.message || '添加记录失败')
       await fetchRecords(record.date)
-      return result._id
+      return result.data?._id
     } catch (error) {
       console.error('添加记录失败:', error)
       throw error
@@ -51,7 +52,7 @@ export const useFoodStore = defineStore('food', () => {
         },
       })
 
-      records.value = result
+      records.value = result.code === 0 ? result.data || [] : []
     } catch (error) {
       console.error('获取记录失败:', error)
     } finally {
@@ -90,11 +91,17 @@ export const useFoodStore = defineStore('food', () => {
         },
       })
 
-      return result
+      if (result.code !== 0) throw new Error(result.message || '获取统计失败')
+      return result.data
     } catch (error) {
       console.error('获取统计失败:', error)
       throw error
     }
+  }
+
+  function reset() {
+    records.value = []
+    loading.value = false
   }
 
   return {
@@ -107,5 +114,6 @@ export const useFoodStore = defineStore('food', () => {
     fetchRecords,
     deleteRecord,
     getStats,
+    reset,
   }
 })

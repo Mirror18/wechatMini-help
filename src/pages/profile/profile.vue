@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useUserStore } from '@/stores'
+import { useUserStore, useFoodStore } from '@/stores'
 
 const userStore = useUserStore()
+const foodStore = useFoodStore()
 
 const showGoalModal = ref(false)
 const newGoal = ref('')
@@ -48,6 +49,7 @@ function handleLogout() {
     success: (res) => {
       if (res.confirm) {
         userStore.logout()
+        foodStore.reset()
       }
     },
   })

@@ -3,7 +3,17 @@
 const db = uniCloud.database();
 
 exports.main = async (event, context) => {
-  const { action, openid, ...data } = event;
+  // 必须通过微信认证，禁止客户端传入 openid 参数
+  const { OPENID } = context.auth
+  if (!OPENID) {
+    return {
+      code: -1,
+      message: '未授权访问',
+      data: null
+    };
+  }
+
+  const { action, ...data } = event;
   
   try {
     const userCollection = db.collection('users');
@@ -11,7 +21,7 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'get': {
         const { data: users } = await userCollection.where({
-          openid: openid
+          openid: OPENID
         }).get();
         
         if (users.length === 0) {
@@ -34,13 +44,24 @@ exports.main = async (event, context) => {
         const updateData = {
           updatedAt: new Date()
         };
-        
-        if (nickname !== undefined) updateData.nickname = nickname;
+
+        if (nickname !== undefined) {
+          if (typeof nickname !== 'string' || nickname.length > 50) {
+            return { code: -1, message: '昵称长度不能超过50个字符', data: null };
+          }
+          updateData.nickname = nickname;
+        }
         if (avatar !== undefined) updateData.avatar = avatar;
-        if (dailyCalorieGoal !== undefined) updateData.dailyCalorieGoal = dailyCalorieGoal;
+        if (dailyCalorieGoal !== undefined) {
+          const goal = Number(dailyCalorieGoal);
+          if (isNaN(goal) || goal < 500 || goal > 10000) {
+            return { code: -1, message: '热量目标应在500-10000千卡之间', data: null };
+          }
+          updateData.dailyCalorieGoal = goal;
+        }
         
         await userCollection.where({
-          openid: openid
+          openid: OPENID
         }).update(updateData);
         
         return {

@@ -21,12 +21,12 @@ exports.main = async (event, context) => {
       }
     );
     
-    const { openid, session_key } = res.data;
-    
+    const { openid, session_key, errcode } = res.data;
+
     if (!openid) {
       return {
         code: -1,
-        message: '登录失败',
+        message: errcode === 40029 ? '登录凭证无效' : '登录失败',
         data: null
       };
     }
@@ -53,8 +53,7 @@ exports.main = async (event, context) => {
       code: 0,
       message: '登录成功',
       data: {
-        openid: openid,
-        session_key: session_key
+        openid: openid
       }
     };
   } catch (error) {
