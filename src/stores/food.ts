@@ -1,24 +1,22 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { FoodRecord, FoodStats, MealType } from '@/types'
+import type { FoodRecord, FoodStats } from '@/types'
 
 export const useFoodStore = defineStore('food', () => {
   const records = ref<FoodRecord[]>([])
   const todayRecords = computed(() => {
     const today = new Date().toISOString().split('T')[0]
-    return records.value.filter(r => r.date === today)
+    return records.value.filter((r) => r.date === today)
   })
-  
-  const todayCalories = computed(() => 
-    todayRecords.value.reduce((sum, r) => sum + r.calories, 0)
-  )
-  
+
+  const todayCalories = computed(() => todayRecords.value.reduce((sum, r) => sum + r.calories, 0))
+
   const todayNutrition = computed(() => ({
     protein: todayRecords.value.reduce((sum, r) => sum + r.protein, 0),
     fat: todayRecords.value.reduce((sum, r) => sum + r.fat, 0),
-    carbs: todayRecords.value.reduce((sum, r) => sum + r.carbs, 0)
+    carbs: todayRecords.value.reduce((sum, r) => sum + r.carbs, 0),
   }))
-  
+
   const loading = ref(false)
 
   async function addRecord(record: Omit<FoodRecord, '_id' | 'createdAt'>) {
@@ -28,10 +26,10 @@ export const useFoodStore = defineStore('food', () => {
         name: 'food-record',
         data: {
           action: 'add',
-          record
-        }
+          record,
+        },
       })
-      
+
       await fetchRecords(record.date)
       return result._id
     } catch (error) {
@@ -49,10 +47,10 @@ export const useFoodStore = defineStore('food', () => {
         name: 'food-record',
         data: {
           action: 'list',
-          date
-        }
+          date,
+        },
       })
-      
+
       records.value = result
     } catch (error) {
       console.error('获取记录失败:', error)
@@ -68,11 +66,11 @@ export const useFoodStore = defineStore('food', () => {
         name: 'food-record',
         data: {
           action: 'delete',
-          id
-        }
+          id,
+        },
       })
-      
-      records.value = records.value.filter(r => r._id !== id)
+
+      records.value = records.value.filter((r) => r._id !== id)
     } catch (error) {
       console.error('删除记录失败:', error)
       throw error
@@ -88,10 +86,10 @@ export const useFoodStore = defineStore('food', () => {
         data: {
           action: 'stats',
           startDate,
-          endDate
-        }
+          endDate,
+        },
       })
-      
+
       return result
     } catch (error) {
       console.error('获取统计失败:', error)
@@ -108,6 +106,6 @@ export const useFoodStore = defineStore('food', () => {
     addRecord,
     fetchRecords,
     deleteRecord,
-    getStats
+    getStats,
   }
 })

@@ -16,7 +16,7 @@ onMounted(() => {
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1] as any
   const data = JSON.parse(decodeURIComponent(currentPage.options?.data || '{}'))
-  
+
   image.value = data.image || ''
   results.value = data.results || []
 })
@@ -33,10 +33,10 @@ function selectMealType(type: MealType) {
 
 async function handleSave() {
   if (!selectedResult.value) return
-  
+
   try {
     saving.value = true
-    
+
     await foodStore.addRecord({
       userId: '',
       foodName: selectedResult.value.name,
@@ -47,14 +47,14 @@ async function handleSave() {
       imageUrl: image.value,
       confidence: parseFloat(selectedResult.value.probability) || 0,
       mealType: mealType.value,
-      date: getToday()
+      date: getToday(),
     })
-    
+
     uni.showToast({
       title: '保存成功',
-      icon: 'success'
+      icon: 'success',
     })
-    
+
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
@@ -62,7 +62,7 @@ async function handleSave() {
     console.error('保存失败:', error)
     uni.showToast({
       title: '保存失败',
-      icon: 'none'
+      icon: 'none',
     })
   } finally {
     saving.value = false
@@ -75,12 +75,12 @@ async function handleSave() {
     <view class="image-preview">
       <image :src="image" mode="aspectFit" class="preview-image" />
     </view>
-    
+
     <view class="results-section">
       <view class="section-title">识别结果</view>
       <scroll-view scroll-x class="results-scroll">
-        <view 
-          v-for="(item, index) in results" 
+        <view
+          v-for="(item, index) in results"
           :key="index"
           class="result-card"
           :class="{ active: selectedIndex === index }"
@@ -91,56 +91,54 @@ async function handleSave() {
         </view>
       </scroll-view>
     </view>
-    
+
     <view class="detail-card" v-if="selectedResult">
       <view class="detail-header">
         <text class="detail-name">{{ selectedResult.name }}</text>
-        <text class="detail-calories">
-          {{ selectedResult.calorie || '--' }} 千卡/100g
-        </text>
+        <text class="detail-calories"> {{ selectedResult.calorie || '--' }} 千卡/100g </text>
       </view>
-      
+
       <view class="confidence-bar">
         <text class="label">识别置信度</text>
         <view class="bar-bg">
-          <view 
-            class="bar-fill" 
-            :style="{ width: (parseFloat(selectedResult.probability) * 100) + '%' }"
+          <view
+            class="bar-fill"
+            :style="{ width: parseFloat(selectedResult.probability) * 100 + '%' }"
           ></view>
         </view>
         <text class="value">{{ (parseFloat(selectedResult.probability) * 100).toFixed(1) }}%</text>
       </view>
     </view>
-    
+
     <view class="meal-section">
       <view class="section-title">选择餐次</view>
       <view class="meal-options">
-        <view 
-          class="meal-option" 
+        <view
+          class="meal-option"
           :class="{ active: mealType === 'breakfast' }"
           @tap="selectMealType('breakfast')"
         >
           <text class="icon">🌅</text>
           <text class="text">早餐</text>
         </view>
-        <view 
-          class="meal-option" 
+        <view
+          class="meal-option"
           :class="{ active: mealType === 'lunch' }"
           @tap="selectMealType('lunch')"
         >
           <text class="icon">☀️</text>
           <text class="text">午餐</text>
         </view>
-        <view 
-          class="meal-option" 
+        <view
+          class="meal-option"
           :class="{ active: mealType === 'dinner' }"
           @tap="selectMealType('dinner')"
         >
           <text class="icon">🌙</text>
           <text class="text">晚餐</text>
         </view>
-        <view 
-          class="meal-option" 
+        <view
+          class="meal-option"
           :class="{ active: mealType === 'snack' }"
           @tap="selectMealType('snack')"
         >
@@ -149,15 +147,9 @@ async function handleSave() {
         </view>
       </view>
     </view>
-    
+
     <view class="action-area">
-      <button 
-        class="save-btn" 
-        :loading="saving"
-        @tap="handleSave"
-      >
-        保存记录
-      </button>
+      <button class="save-btn" :loading="saving" @tap="handleSave">保存记录</button>
     </view>
   </view>
 </template>
@@ -165,7 +157,7 @@ async function handleSave() {
 <style scoped>
 .container {
   padding: 20rpx;
-  background: #F5F5F5;
+  background: #f5f5f5;
   min-height: 100vh;
 }
 
@@ -210,7 +202,7 @@ async function handleSave() {
 }
 
 .result-card.active {
-  background: #4CAF50;
+  background: #4caf50;
   box-shadow: 0 4rpx 20rpx rgba(76, 175, 80, 0.4);
 }
 
@@ -256,7 +248,7 @@ async function handleSave() {
 
 .detail-calories {
   font-size: 28rpx;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: bold;
 }
 
@@ -275,14 +267,14 @@ async function handleSave() {
 .bar-bg {
   flex: 1;
   height: 20rpx;
-  background: #E0E0E0;
+  background: #e0e0e0;
   border-radius: 10rpx;
   overflow: hidden;
 }
 
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
   border-radius: 10rpx;
 }
 
@@ -320,8 +312,8 @@ async function handleSave() {
 }
 
 .meal-option.active {
-  background: #E8F5E9;
-  border: 2rpx solid #4CAF50;
+  background: #e8f5e9;
+  border: 2rpx solid #4caf50;
 }
 
 .icon {
@@ -341,7 +333,7 @@ async function handleSave() {
 .save-btn {
   width: 100%;
   height: 100rpx;
-  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
   color: #fff;
   font-size: 32rpx;
   font-weight: bold;

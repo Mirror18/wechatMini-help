@@ -19,7 +19,7 @@ async function loadStats() {
     loading.value = true
     let startDate: string
     let endDate: string
-    
+
     if (period.value === 'week') {
       const range = getWeekRange()
       startDate = range.start
@@ -29,7 +29,7 @@ async function loadStats() {
       startDate = range.start
       endDate = range.end
     }
-    
+
     stats.value = await foodStore.getStats(startDate, endDate)
   } catch (error) {
     console.error('获取统计失败:', error)
@@ -45,7 +45,7 @@ function switchPeriod(p: 'week' | 'month') {
 
 function getMaxCalories(): number {
   if (!stats.value?.dailyBreakdown?.length) return 2000
-  return Math.max(...stats.value.dailyBreakdown.map(d => d.calories), 2000)
+  return Math.max(...stats.value.dailyBreakdown.map((d) => d.calories), 2000)
 }
 
 function getBarHeight(calories: number): string {
@@ -58,22 +58,14 @@ function getBarHeight(calories: number): string {
 <template>
   <view class="container">
     <view class="period-tabs">
-      <view 
-        class="tab" 
-        :class="{ active: period === 'week' }"
-        @tap="switchPeriod('week')"
-      >
+      <view class="tab" :class="{ active: period === 'week' }" @tap="switchPeriod('week')">
         <text>本周</text>
       </view>
-      <view 
-        class="tab" 
-        :class="{ active: period === 'month' }"
-        @tap="switchPeriod('month')"
-      >
+      <view class="tab" :class="{ active: period === 'month' }" @tap="switchPeriod('month')">
         <text>本月</text>
       </view>
     </view>
-    
+
     <view class="summary-card" v-if="stats">
       <view class="summary-row">
         <view class="summary-item">
@@ -100,27 +92,20 @@ function getBarHeight(calories: number): string {
         </view>
       </view>
     </view>
-    
+
     <view class="chart-card" v-if="stats?.dailyBreakdown">
       <view class="chart-title">热量趋势</view>
       <view class="chart-container">
         <view class="chart-bars">
-          <view 
-            class="bar-group" 
-            v-for="item in stats.dailyBreakdown" 
-            :key="item.date"
-          >
+          <view class="bar-group" v-for="item in stats.dailyBreakdown" :key="item.date">
             <view class="bar-value">{{ item.calories }}</view>
-            <view 
-              class="bar" 
-              :style="{ height: getBarHeight(item.calories) }"
-            ></view>
+            <view class="bar" :style="{ height: getBarHeight(item.calories) }"></view>
             <view class="bar-label">{{ formatDate(item.date, 'MM/DD') }}</view>
           </view>
         </view>
       </view>
     </view>
-    
+
     <view class="nutrition-card" v-if="stats">
       <view class="card-title">营养成分占比</view>
       <view class="nutrition-bars">
@@ -130,9 +115,14 @@ function getBarHeight(calories: number): string {
             <text class="value">{{ stats.totalProtein.toFixed(1) }}g</text>
           </view>
           <view class="progress-bar">
-            <view 
-              class="progress-fill protein" 
-              :style="{ width: (stats.totalProtein / (stats.totalProtein + stats.totalFat + stats.totalCarbs) * 100) + '%' }"
+            <view
+              class="progress-fill protein"
+              :style="{
+                width:
+                  (stats.totalProtein / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
+                    100 +
+                  '%',
+              }"
             ></view>
           </view>
         </view>
@@ -142,9 +132,14 @@ function getBarHeight(calories: number): string {
             <text class="value">{{ stats.totalFat.toFixed(1) }}g</text>
           </view>
           <view class="progress-bar">
-            <view 
-              class="progress-fill fat" 
-              :style="{ width: (stats.totalFat / (stats.totalProtein + stats.totalFat + stats.totalCarbs) * 100) + '%' }"
+            <view
+              class="progress-fill fat"
+              :style="{
+                width:
+                  (stats.totalFat / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
+                    100 +
+                  '%',
+              }"
             ></view>
           </view>
         </view>
@@ -154,15 +149,20 @@ function getBarHeight(calories: number): string {
             <text class="value">{{ stats.totalCarbs.toFixed(1) }}g</text>
           </view>
           <view class="progress-bar">
-            <view 
-              class="progress-fill carbs" 
-              :style="{ width: (stats.totalCarbs / (stats.totalProtein + stats.totalFat + stats.totalCarbs) * 100) + '%' }"
+            <view
+              class="progress-fill carbs"
+              :style="{
+                width:
+                  (stats.totalCarbs / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
+                    100 +
+                  '%',
+              }"
             ></view>
           </view>
         </view>
       </view>
     </view>
-    
+
     <view class="empty-state" v-if="!stats && !loading">
       <text class="empty-icon">📊</text>
       <text class="empty-text">暂无统计数据</text>
@@ -174,7 +174,7 @@ function getBarHeight(calories: number): string {
 <style scoped>
 .container {
   padding: 20rpx;
-  background: #F5F5F5;
+  background: #f5f5f5;
   min-height: 100vh;
 }
 
@@ -198,7 +198,7 @@ function getBarHeight(calories: number): string {
 }
 
 .tab.active {
-  background: #4CAF50;
+  background: #4caf50;
   color: #fff;
 }
 
@@ -229,7 +229,7 @@ function getBarHeight(calories: number): string {
 .value {
   font-size: 36rpx;
   font-weight: bold;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .label {
@@ -281,7 +281,7 @@ function getBarHeight(calories: number): string {
 
 .bar {
   width: 40rpx;
-  background: linear-gradient(180deg, #4CAF50, #8BC34A);
+  background: linear-gradient(180deg, #4caf50, #8bc34a);
   border-radius: 10rpx 10rpx 0 0;
   min-height: 10rpx;
   transition: height 0.3s ease;
@@ -337,7 +337,7 @@ function getBarHeight(calories: number): string {
 
 .progress-bar {
   height: 20rpx;
-  background: #E0E0E0;
+  background: #e0e0e0;
   border-radius: 10rpx;
   overflow: hidden;
 }
@@ -349,15 +349,15 @@ function getBarHeight(calories: number): string {
 }
 
 .protein {
-  background: linear-gradient(90deg, #2196F3, #42A5F5);
+  background: linear-gradient(90deg, #2196f3, #42a5f5);
 }
 
 .fat {
-  background: linear-gradient(90deg, #FF9800, #FFA726);
+  background: linear-gradient(90deg, #ff9800, #ffa726);
 }
 
 .carbs {
-  background: linear-gradient(90deg, #4CAF50, #66BB6A);
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
 }
 
 .empty-state {

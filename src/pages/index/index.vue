@@ -11,7 +11,7 @@ const userStore = useUserStore()
 const loading = ref(false)
 const todayCalories = computed(() => foodStore.todayCalories)
 const calorieGoal = computed(() => userStore.profile?.dailyCalorieGoal || 2000)
-const progress = computed(() => Math.min(todayCalories.value / calorieGoal.value * 100, 100))
+const progress = computed(() => Math.min((todayCalories.value / calorieGoal.value) * 100, 100))
 
 onMounted(async () => {
   await foodStore.fetchRecords(getToday())
@@ -20,31 +20,33 @@ onMounted(async () => {
 async function handleTakePhoto() {
   try {
     loading.value = true
-    
+
     const [tempFilePath] = await chooseImage()
     const compressedPath = await compressImage(tempFilePath, 80)
     const base64 = await imageToBase64(compressedPath)
-    
+
     const result = await recognizeDish(base64)
-    
+
     if (result.result && result.result.length > 0) {
       uni.navigateTo({
-        url: `/pages/result/result?data=${encodeURIComponent(JSON.stringify({
-          image: compressedPath,
-          results: result.result
-        }))}`
+        url: `/pages/result/result?data=${encodeURIComponent(
+          JSON.stringify({
+            image: compressedPath,
+            results: result.result,
+          }),
+        )}`,
       })
     } else {
       uni.showToast({
         title: '未识别到食物',
-        icon: 'none'
+        icon: 'none',
       })
     }
   } catch (error) {
     console.error('识别失败:', error)
     uni.showToast({
       title: '识别失败，请重试',
-      icon: 'none'
+      icon: 'none',
     })
   } finally {
     loading.value = false
@@ -59,7 +61,7 @@ async function handleTakePhoto() {
         <text class="title">今日热量</text>
         <text class="date">{{ getToday() }}</text>
       </view>
-      
+
       <view class="calorie-card">
         <view class="calorie-circle">
           <text class="calorie-number">{{ todayCalories }}</text>
@@ -71,7 +73,7 @@ async function handleTakePhoto() {
         <text class="goal-text">目标: {{ calorieGoal }} 千卡</text>
       </view>
     </view>
-    
+
     <view class="nutrition-summary">
       <view class="nutrition-item">
         <text class="value">{{ foodStore.todayNutrition.protein.toFixed(1) }}</text>
@@ -86,25 +88,17 @@ async function handleTakePhoto() {
         <text class="label">碳水(g)</text>
       </view>
     </view>
-    
+
     <view class="action-area">
-      <button 
-        class="capture-btn" 
-        :loading="loading" 
-        @tap="handleTakePhoto"
-      >
+      <button class="capture-btn" :loading="loading" @tap="handleTakePhoto">
         <text class="btn-icon">📸</text>
         <text class="btn-text">拍照识别食物</text>
       </button>
     </view>
-    
+
     <view class="today-records" v-if="foodStore.todayRecords.length > 0">
       <view class="section-title">今日记录</view>
-      <view 
-        class="record-item" 
-        v-for="record in foodStore.todayRecords" 
-        :key="record._id"
-      >
+      <view class="record-item" v-for="record in foodStore.todayRecords" :key="record._id">
         <view class="record-info">
           <text class="food-name">{{ record.foodName }}</text>
           <text class="meal-type">{{ record.mealType }}</text>
@@ -118,7 +112,7 @@ async function handleTakePhoto() {
 <style scoped>
 .container {
   padding: 20rpx;
-  background: linear-gradient(180deg, #4CAF50 0%, #F5F5F5 40%);
+  background: linear-gradient(180deg, #4caf50 0%, #f5f5f5 40%);
   min-height: 100vh;
 }
 
@@ -161,7 +155,7 @@ async function handleTakePhoto() {
 .calorie-number {
   font-size: 80rpx;
   font-weight: bold;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .calorie-unit {
@@ -171,7 +165,7 @@ async function handleTakePhoto() {
 
 .progress-bar {
   height: 20rpx;
-  background: #E0E0E0;
+  background: #e0e0e0;
   border-radius: 10rpx;
   margin-bottom: 20rpx;
   overflow: hidden;
@@ -179,7 +173,7 @@ async function handleTakePhoto() {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
   border-radius: 10rpx;
   transition: width 0.3s ease;
 }
@@ -228,7 +222,7 @@ async function handleTakePhoto() {
   width: 400rpx;
   height: 400rpx;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -271,7 +265,7 @@ async function handleTakePhoto() {
   justify-content: space-between;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .record-item:last-child {
@@ -296,7 +290,7 @@ async function handleTakePhoto() {
 
 .record-calories {
   font-size: 28rpx;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: bold;
 }
 </style>

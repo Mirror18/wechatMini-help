@@ -1,13 +1,26 @@
 <script setup lang="ts">
-import { onLaunch, onShow, onHide } from "@dcloudio/uni-app";
+import { onLaunch, onShow, onHide } from '@dcloudio/uni-app'
+
 onLaunch(() => {
-  console.log("App Launch");
-});
+  // eslint-disable-next-line no-console
+  console.log('App Launch')
+
+  // 全局错误处理
+  uni.onError((err) => {
+    // eslint-disable-next-line no-console
+    console.error('Global error:', err)
+  })
+})
+
 onShow(() => {
-  console.log("App Show");
-});
+  // eslint-disable-next-line no-console
+  console.log('App Show')
+})
+
 onHide(() => {
-  console.log("App Hide");
-});
+  // eslint-disable-next-line no-console
+  console.log('App Hide')
+})
 </script>
+
 <style></style>

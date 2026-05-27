@@ -27,17 +27,17 @@ async function saveGoal() {
   if (isNaN(goal) || goal <= 0) {
     uni.showToast({
       title: '请输入有效数值',
-      icon: 'none'
+      icon: 'none',
     })
     return
   }
-  
+
   await userStore.updateProfile({ dailyCalorieGoal: goal })
   showGoalModal.value = false
-  
+
   uni.showToast({
     title: '保存成功',
-    icon: 'success'
+    icon: 'success',
   })
 }
 
@@ -49,7 +49,7 @@ function handleLogout() {
       if (res.confirm) {
         userStore.logout()
       }
-    }
+    },
   })
 }
 </script>
@@ -58,27 +58,23 @@ function handleLogout() {
   <view class="container">
     <view class="profile-header">
       <view class="avatar-section">
-        <image 
-          v-if="userStore.profile?.avatar" 
-          :src="userStore.profile.avatar" 
-          class="avatar"
-        />
+        <image v-if="userStore.profile?.avatar" :src="userStore.profile.avatar" class="avatar" />
         <view v-else class="avatar-placeholder">
           <text class="avatar-icon">👤</text>
         </view>
       </view>
-      
+
       <view class="user-info" v-if="userStore.isLoggedIn">
         <text class="nickname">{{ userStore.profile?.nickname || '用户' }}</text>
         <text class="uid">ID: {{ userStore.openid.substring(0, 8) }}...</text>
       </view>
-      
+
       <view class="login-prompt" v-else>
         <button class="login-btn" @tap="handleLogin">微信登录</button>
         <text class="login-hint">登录后同步数据</text>
       </view>
     </view>
-    
+
     <view class="menu-section" v-if="userStore.isLoggedIn">
       <view class="menu-card">
         <view class="menu-item" @tap="openGoalModal">
@@ -91,7 +87,7 @@ function handleLogout() {
             <text class="item-arrow">›</text>
           </view>
         </view>
-        
+
         <view class="menu-item">
           <view class="item-left">
             <text class="item-icon">📊</text>
@@ -102,7 +98,7 @@ function handleLogout() {
             <text class="item-arrow">›</text>
           </view>
         </view>
-        
+
         <view class="menu-item">
           <view class="item-left">
             <text class="item-icon">💡</text>
@@ -113,7 +109,7 @@ function handleLogout() {
           </view>
         </view>
       </view>
-      
+
       <view class="menu-card">
         <view class="menu-item">
           <view class="item-left">
@@ -124,7 +120,7 @@ function handleLogout() {
             <text class="item-arrow">›</text>
           </view>
         </view>
-        
+
         <view class="menu-item">
           <view class="item-left">
             <text class="item-icon">❓</text>
@@ -134,7 +130,7 @@ function handleLogout() {
             <text class="item-arrow">›</text>
           </view>
         </view>
-        
+
         <view class="menu-item">
           <view class="item-left">
             <text class="item-icon">ℹ️</text>
@@ -146,10 +142,10 @@ function handleLogout() {
           </view>
         </view>
       </view>
-      
+
       <button class="logout-btn" @tap="handleLogout">退出登录</button>
     </view>
-    
+
     <view class="features-section" v-else>
       <view class="feature-card">
         <text class="feature-icon">📸</text>
@@ -167,16 +163,16 @@ function handleLogout() {
         <text class="feature-desc">设定并追踪目标</text>
       </view>
     </view>
-    
+
     <view class="modal-mask" v-if="showGoalModal" @tap="showGoalModal = false">
       <view class="modal-content" @tap.stop>
         <view class="modal-header">
           <text class="modal-title">设置每日热量目标</text>
         </view>
         <view class="modal-body">
-          <input 
-            v-model="newGoal" 
-            type="number" 
+          <input
+            v-model="newGoal"
+            type="number"
             placeholder="请输入目标热量(千卡)"
             class="goal-input"
           />
@@ -194,7 +190,7 @@ function handleLogout() {
 <style scoped>
 .container {
   padding: 20rpx;
-  background: linear-gradient(180deg, #4CAF50 0%, #F5F5F5 30%);
+  background: linear-gradient(180deg, #4caf50 0%, #f5f5f5 30%);
   min-height: 100vh;
 }
 
@@ -257,7 +253,7 @@ function handleLogout() {
 
 .login-btn {
   background: #fff;
-  color: #4CAF50;
+  color: #4caf50;
   font-size: 28rpx;
   padding: 15rpx 60rpx;
   border-radius: 40rpx;
@@ -291,7 +287,7 @@ function handleLogout() {
   justify-content: space-between;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .menu-item:last-child {
@@ -326,13 +322,13 @@ function handleLogout() {
 
 .item-arrow {
   font-size: 32rpx;
-  color: #CCC;
+  color: #ccc;
 }
 
 .logout-btn {
   margin-top: 30rpx;
   background: #fff;
-  color: #F44336;
+  color: #f44336;
   font-size: 28rpx;
   border-radius: 15rpx;
   border: none;
@@ -401,7 +397,7 @@ function handleLogout() {
 
 .modal-header {
   padding: 30rpx;
-  border-bottom: 1rpx solid #F0F0F0;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .modal-title {
@@ -417,7 +413,7 @@ function handleLogout() {
 .goal-input {
   width: 100%;
   height: 80rpx;
-  border: 2rpx solid #E0E0E0;
+  border: 2rpx solid #e0e0e0;
   border-radius: 10rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
@@ -431,10 +427,11 @@ function handleLogout() {
 
 .modal-footer {
   display: flex;
-  border-top: 1rpx solid #F0F0F0;
+  border-top: 1rpx solid #f0f0f0;
 }
 
-.cancel-btn, .confirm-btn {
+.cancel-btn,
+.confirm-btn {
   flex: 1;
   height: 100rpx;
   display: flex;
@@ -446,17 +443,18 @@ function handleLogout() {
   border-radius: 0;
 }
 
-.cancel-btn::after, .confirm-btn::after {
+.cancel-btn::after,
+.confirm-btn::after {
   border: none;
 }
 
 .cancel-btn {
   color: #666;
-  border-right: 1rpx solid #F0F0F0;
+  border-right: 1rpx solid #f0f0f0;
 }
 
 .confirm-btn {
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: bold;
 }
 </style>

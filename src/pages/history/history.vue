@@ -36,7 +36,7 @@ function getMealTypeText(type: string): string {
     breakfast: '早餐',
     lunch: '午餐',
     dinner: '晚餐',
-    snack: '加餐'
+    snack: '加餐',
   }
   return map[type] || type
 }
@@ -46,7 +46,7 @@ function getMealTypeIcon(type: string): string {
     breakfast: '🌅',
     lunch: '☀️',
     dinner: '🌙',
-    snack: '🍪'
+    snack: '🍪',
   }
   return map[type] || '🍽️'
 }
@@ -60,7 +60,7 @@ async function deleteRecord(id: string) {
         await foodStore.deleteRecord(id)
         loadRecords()
       }
-    }
+    },
   })
 }
 </script>
@@ -73,13 +73,15 @@ async function deleteRecord(id: string) {
       </view>
       <view class="current-date" @tap="goToday">
         <text class="date-text">{{ formatDate(currentDate, 'MM月DD日') }}</text>
-        <text class="today-tag" v-if="formatDate(currentDate) === formatDate(new Date())">今天</text>
+        <text class="today-tag" v-if="formatDate(currentDate) === formatDate(new Date())"
+          >今天</text
+        >
       </view>
       <view class="arrow" @tap="changeDate(1)">
         <text>&gt;</text>
       </view>
     </view>
-    
+
     <view class="summary-card">
       <view class="summary-item">
         <text class="value">{{ foodStore.todayCalories }}</text>
@@ -91,13 +93,9 @@ async function deleteRecord(id: string) {
         <text class="label">记录数</text>
       </view>
     </view>
-    
+
     <view class="records-list" v-if="records.length > 0">
-      <view 
-        class="record-card" 
-        v-for="record in records" 
-        :key="record._id"
-      >
+      <view class="record-card" v-for="record in records" :key="record._id">
         <view class="record-icon">
           <text>{{ getMealTypeIcon(record.mealType) }}</text>
         </view>
@@ -116,7 +114,7 @@ async function deleteRecord(id: string) {
         </view>
       </view>
     </view>
-    
+
     <view class="empty-state" v-else>
       <text class="empty-icon">📝</text>
       <text class="empty-text">暂无记录</text>
@@ -128,7 +126,7 @@ async function deleteRecord(id: string) {
 <style scoped>
 .container {
   padding: 20rpx;
-  background: #F5F5F5;
+  background: #f5f5f5;
   min-height: 100vh;
 }
 
@@ -150,7 +148,7 @@ async function deleteRecord(id: string) {
   align-items: center;
   justify-content: center;
   font-size: 32rpx;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .current-date {
@@ -167,7 +165,7 @@ async function deleteRecord(id: string) {
 
 .today-tag {
   font-size: 20rpx;
-  background: #4CAF50;
+  background: #4caf50;
   color: #fff;
   padding: 4rpx 12rpx;
   border-radius: 10rpx;
@@ -193,7 +191,7 @@ async function deleteRecord(id: string) {
 .value {
   font-size: 40rpx;
   font-weight: bold;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .label {
@@ -205,7 +203,7 @@ async function deleteRecord(id: string) {
 .divider {
   width: 2rpx;
   height: 60rpx;
-  background: #E0E0E0;
+  background: #e0e0e0;
 }
 
 .records-list {
@@ -230,7 +228,7 @@ async function deleteRecord(id: string) {
   align-items: center;
   justify-content: center;
   font-size: 40rpx;
-  background: #F5F5F5;
+  background: #f5f5f5;
   border-radius: 50%;
   margin-right: 20rpx;
 }
@@ -254,8 +252,8 @@ async function deleteRecord(id: string) {
 
 .meal-type {
   font-size: 20rpx;
-  background: #E8F5E9;
-  color: #4CAF50;
+  background: #e8f5e9;
+  color: #4caf50;
   padding: 4rpx 12rpx;
   border-radius: 10rpx;
 }
@@ -268,7 +266,7 @@ async function deleteRecord(id: string) {
 
 .calories {
   font-size: 24rpx;
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .time {

@@ -4,7 +4,7 @@ export function compressImage(src: string, quality: number = 80): Promise<string
       src,
       quality,
       success: (res) => resolve(res.tempFilePath),
-      fail: (err) => reject(err)
+      fail: (err) => reject(err),
     })
   })
 }
@@ -16,7 +16,7 @@ export function chooseImage(count: number = 1): Promise<string[]> {
       sizeType: ['compressed'],
       sourceType: ['camera', 'album'],
       success: (res) => resolve(res.tempFilePaths as string[]),
-      fail: (err) => reject(err)
+      fail: (err) => reject(err),
     })
   })
 }
@@ -26,7 +26,7 @@ export function getImageInfo(src: string): Promise<UniApp.GetImageInfoSuccessDat
     uni.getImageInfo({
       src,
       success: (res) => resolve(res),
-      fail: (err) => reject(err)
+      fail: (err) => reject(err),
     })
   })
 }

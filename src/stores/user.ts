@@ -12,12 +12,12 @@ export const useUserStore = defineStore('user', () => {
     try {
       loading.value = true
       const { code } = await uni.login({ provider: 'weixin' })
-      
+
       const { result } = await uniCloud.callFunction({
         name: 'user-login',
-        data: { code }
+        data: { code },
       })
-      
+
       openid.value = result.openid
       await fetchProfile()
     } catch (error) {
@@ -30,16 +30,16 @@ export const useUserStore = defineStore('user', () => {
 
   async function fetchProfile() {
     if (!openid.value) return
-    
+
     try {
       const { result } = await uniCloud.callFunction({
         name: 'user-profile',
-        data: { 
+        data: {
           action: 'get',
-          openid: openid.value 
-        }
+          openid: openid.value,
+        },
       })
-      
+
       profile.value = result
     } catch (error) {
       console.error('获取用户信息失败:', error)
@@ -48,7 +48,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function updateProfile(data: Partial<UserProfile>) {
     if (!openid.value) return
-    
+
     try {
       loading.value = true
       await uniCloud.callFunction({
@@ -56,10 +56,10 @@ export const useUserStore = defineStore('user', () => {
         data: {
           action: 'update',
           openid: openid.value,
-          ...data
-        }
+          ...data,
+        },
       })
-      
+
       await fetchProfile()
     } catch (error) {
       console.error('更新用户信息失败:', error)
@@ -82,6 +82,6 @@ export const useUserStore = defineStore('user', () => {
     login,
     fetchProfile,
     updateProfile,
-    logout
+    logout,
   }
 })
