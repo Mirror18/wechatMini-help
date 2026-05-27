@@ -34,6 +34,10 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Inject uniCloud config
+        run: |
+          jq '.["mp-weixin"].uniCloud = { "provider": "aliyun", "spaceId": "${{ secrets.UNICLOUD_SPACE_ID }}" }' src/manifest.json > tmp.json && mv tmp.json src/manifest.json
+
       - name: Build for WeChat
         run: npm run build:mp-weixin
         env:
