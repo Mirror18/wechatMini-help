@@ -45,7 +45,10 @@ jobs:
             echo "desc=${{ github.event.inputs.desc }}" >> $GITHUB_OUTPUT
           else
             echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-            echo "desc=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+            EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+            echo "desc<<$EOF" >> $GITHUB_OUTPUT
+            git log -1 --pretty=%B >> $GITHUB_OUTPUT
+            echo "$EOF" >> $GITHUB_OUTPUT
           fi
 
       - name: Write private key to file
