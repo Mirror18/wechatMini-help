@@ -22,6 +22,34 @@ function openGoalModal() {
   showGoalModal.value = true
 }
 
+function goHistory() {
+  uni.switchTab({ url: '/pages/history/history' })
+}
+
+function goStats() {
+  uni.switchTab({ url: '/pages/stats/stats' })
+}
+
+function showTips() {
+  uni.showToast({ title: '饮食建议功能开发中', icon: 'none' })
+}
+
+function openSettings() {
+  uni.showToast({ title: '设置功能开发中', icon: 'none' })
+}
+
+function openHelp() {
+  uni.showToast({ title: '帮助与反馈功能开发中', icon: 'none' })
+}
+
+function openAbout() {
+  uni.showModal({
+    title: '关于我们',
+    content: '食物热量识别 v0.1.0\n拍照识别食物热量，轻松管理每日饮食',
+    showCancel: false,
+  })
+}
+
 async function saveGoal() {
   const goal = parseInt(newGoal.value)
   if (isNaN(goal) || goal <= 0) {
@@ -88,7 +116,7 @@ function handleLogout() {
           </view>
         </view>
 
-        <view class="menu-item">
+        <view class="menu-item" @tap="goHistory">
           <view class="item-left">
             <text class="item-icon">📊</text>
             <text class="item-text">历史记录</text>
@@ -99,7 +127,7 @@ function handleLogout() {
           </view>
         </view>
 
-        <view class="menu-item">
+        <view class="menu-item" @tap="showTips">
           <view class="item-left">
             <text class="item-icon">💡</text>
             <text class="item-text">饮食建议</text>
@@ -111,7 +139,7 @@ function handleLogout() {
       </view>
 
       <view class="menu-card">
-        <view class="menu-item">
+        <view class="menu-item" @tap="openSettings">
           <view class="item-left">
             <text class="item-icon">⚙️</text>
             <text class="item-text">设置</text>
@@ -121,7 +149,7 @@ function handleLogout() {
           </view>
         </view>
 
-        <view class="menu-item">
+        <view class="menu-item" @tap="openHelp">
           <view class="item-left">
             <text class="item-icon">❓</text>
             <text class="item-text">帮助与反馈</text>
@@ -131,7 +159,7 @@ function handleLogout() {
           </view>
         </view>
 
-        <view class="menu-item">
+        <view class="menu-item" @tap="openAbout">
           <view class="item-left">
             <text class="item-icon">ℹ️</text>
             <text class="item-text">关于我们</text>

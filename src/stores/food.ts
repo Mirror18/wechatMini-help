@@ -51,7 +51,13 @@ export const useFoodStore = defineStore('food', () => {
         },
       })
 
-      records.value = result
+      // 合并新记录，按 _id 去重，避免覆盖其他日期的记录
+      const incoming = result as FoodRecord[]
+      const existingMap = new Map(records.value.map((r: FoodRecord) => [r._id, r]))
+      for (const record of incoming) {
+        existingMap.set(record._id, record)
+      }
+      records.value = Array.from(existingMap.values())
     } catch (error) {
       console.error('获取记录失败:', error)
     } finally {

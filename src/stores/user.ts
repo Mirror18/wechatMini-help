@@ -3,10 +3,20 @@ import { ref, computed } from 'vue'
 import type { UserProfile } from '@/types'
 
 export const useUserStore = defineStore('user', () => {
-  const openid = ref('')
+  const STORAGE_KEY = 'user_openid'
+  const openid = ref(uni.getStorageSync(STORAGE_KEY) || '')
   const profile = ref<UserProfile | null>(null)
   const isLoggedIn = computed(() => !!openid.value)
   const loading = ref(false)
+
+  function persistOpenid(val: string) {
+    openid.value = val
+    if (val) {
+      uni.setStorageSync(STORAGE_KEY, val)
+    } else {
+      uni.removeStorageSync(STORAGE_KEY)
+    }
+  }
 
   async function login() {
     try {
@@ -18,7 +28,7 @@ export const useUserStore = defineStore('user', () => {
         data: { code },
       })
 
-      openid.value = result.openid
+      persistOpenid(result.data.openid)
       await fetchProfile()
     } catch (error) {
       console.error('登录失败:', error)
@@ -36,13 +46,17 @@ export const useUserStore = defineStore('user', () => {
         name: 'user-profile',
         data: {
           action: 'get',
-          openid: openid.value,
         },
       })
 
       profile.value = result
     } catch (error) {
       console.error('获取用户信息失败:', error)
+      // token 失效时清掉本地存储
+      if ((error as any)?.message?.includes('401')) {
+        persistOpenid('')
+        profile.value = null
+      }
     }
   }
 
@@ -55,7 +69,6 @@ export const useUserStore = defineStore('user', () => {
         name: 'user-profile',
         data: {
           action: 'update',
-          openid: openid.value,
           ...data,
         },
       })
@@ -70,8 +83,13 @@ export const useUserStore = defineStore('user', () => {
   }
 
   function logout() {
-    openid.value = ''
+    persistOpenid('')
     profile.value = null
+  }
+
+  // 启动时若已有 openid，自动拉取资料
+  if (openid.value) {
+    fetchProfile()
   }
 
   return {
