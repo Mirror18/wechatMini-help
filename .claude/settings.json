@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh run *)",
+      "PowerShell(gh run list --limit 3)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(curl -s https://api.github.com/meta)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(r\\) for r in d.get\\('actions',[]\\) if '/' in r]\")",
+      "Bash(python3 -c ' *)",
+      "PowerShell(\\(Invoke-WebRequest -Uri \"https://api.github.com/meta\" -UseBasicParsing\\).Content | ConvertFrom-Json | Select-Object -ExpandProperty actions | Select-Object -First 10)"
+    ]
+  }
+}
