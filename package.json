@@ -46,7 +46,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "standard-version",
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major"
   },
   "lint-staged": {
     "*.{ts,vue}": [
@@ -100,6 +104,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
+    "standard-version": "^9.5.0",
     "typescript": "^4.9.4",
     "vite": "5.2.8",
     "vitest": "^4.1.7",
