@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useFoodStore } from '@/stores'
+import { useFoodStore, useUserStore } from '@/stores'
 import { getToday } from '@/utils/date'
 import type { BaiduAIDishResult, MealType } from '@/types'
 
 const foodStore = useFoodStore()
+const userStore = useUserStore()
 
 const image = ref('')
 const results = ref<BaiduAIDishResult[]>([])
@@ -38,7 +39,7 @@ async function handleSave() {
     saving.value = true
 
     await foodStore.addRecord({
-      userId: '',
+      userId: userStore.openid,
       foodName: selectedResult.value.name,
       calories: parseFloat(selectedResult.value.calorie) || 0,
       protein: 0,

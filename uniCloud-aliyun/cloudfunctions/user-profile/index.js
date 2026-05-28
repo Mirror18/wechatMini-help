@@ -3,15 +3,18 @@
 const db = uniCloud.database();
 
 exports.main = async (event, context) => {
-  const { action, openid, ...data } = event;
-  
-  try {
+  const { OPENID } = context.auth || {};
+  const { action, ...data } = event;
+
+  if (!OPENID) {
+    return { code: 401, message: '请先登录', data: null };
+  }
     const userCollection = db.collection('users');
     
     switch (action) {
       case 'get': {
         const { data: users } = await userCollection.where({
-          openid: openid
+          openid: OPENID
         }).get();
         
         if (users.length === 0) {
@@ -34,13 +37,13 @@ exports.main = async (event, context) => {
         const updateData = {
           updatedAt: new Date()
         };
-        
+
         if (nickname !== undefined) updateData.nickname = nickname;
         if (avatar !== undefined) updateData.avatar = avatar;
         if (dailyCalorieGoal !== undefined) updateData.dailyCalorieGoal = dailyCalorieGoal;
-        
+
         await userCollection.where({
-          openid: openid
+          openid: OPENID
         }).update(updateData);
         
         return {

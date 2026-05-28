@@ -11,10 +11,13 @@ exports.main = async (event, context) => {
     
     switch (action) {
       case 'add': {
+        if (!OPENID) {
+          return { code: 401, message: '请先登录', data: null };
+        }
         const { record } = data;
         const result = await recordCollection.add({
           ...record,
-          userId: OPENID || record.userId,
+          userId: OPENID,
           createdAt: new Date()
         });
         
@@ -26,11 +29,13 @@ exports.main = async (event, context) => {
       }
       
       case 'list': {
+        if (!OPENID) {
+          return { code: 401, message: '请先登录', data: null };
+        }
         const { date } = data;
-        const userId = OPENID || data.userId;
-        
+
         const { data: records } = await recordCollection.where({
-          userId: userId,
+          userId: OPENID,
           date: date
         })
         .orderBy('createdAt', 'desc')
@@ -44,7 +49,20 @@ exports.main = async (event, context) => {
       }
       
       case 'delete': {
+        if (!OPENID) {
+          return { code: 401, message: '请先登录', data: null };
+        }
         const { id } = data;
+
+        // 先查询记录，验证归属
+        const { data: targetRecords } = await recordCollection.doc(id).get();
+        if (!targetRecords || targetRecords.length === 0) {
+          return { code: -1, message: '记录不存在', data: null };
+        }
+        if (targetRecords[0].userId !== OPENID) {
+          return { code: -1, message: '无权删除该记录', data: null };
+        }
+
         await recordCollection.doc(id).remove();
         
         return {
@@ -55,11 +73,13 @@ exports.main = async (event, context) => {
       }
       
       case 'stats': {
+        if (!OPENID) {
+          return { code: 401, message: '请先登录', data: null };
+        }
         const { startDate, endDate } = data;
-        const userId = OPENID || data.userId;
-        
+
         const { data: records } = await recordCollection.where({
-          userId: userId,
+          userId: OPENID,
           date: db.command.gte(startDate).and(db.command.lte(endDate))
         }).get();
         
