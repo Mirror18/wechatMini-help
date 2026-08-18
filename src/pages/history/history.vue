@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useFoodStore } from '@/stores'
 import { formatDate } from '@/utils/date'
 import type { FoodRecord } from '@/types'
@@ -9,14 +9,21 @@ const foodStore = useFoodStore()
 const currentDate = ref(new Date())
 const records = ref<FoodRecord[]>([])
 
+const selectedDateStr = computed(() => formatDate(currentDate.value))
+
+const selectedCalories = computed(() => {
+  return records.value.reduce((sum, r) => sum + (r.calories || 0), 0)
+})
+
 onMounted(() => {
   loadRecords()
 })
 
 async function loadRecords() {
-  const dateStr = formatDate(currentDate.value)
+  const dateStr = selectedDateStr.value
   await foodStore.fetchRecords(dateStr)
-  records.value = foodStore.records
+  // 拷贝一份，避免引用 store 内部数组导致切换日期时显示错乱
+  records.value = foodStore.records.filter((r) => r.date === dateStr).slice()
 }
 
 function changeDate(days: number) {
@@ -51,14 +58,23 @@ function getMealTypeIcon(type: string): string {
   return map[type] || '🍽️'
 }
 
+function formatRecordTime(record: FoodRecord): string {
+  if (!record.createdAt) return ''
+  return formatDate(record.createdAt, 'HH:mm')
+}
+
 async function deleteRecord(id: string) {
   uni.showModal({
     title: '确认删除',
     content: '确定要删除这条记录吗？',
     success: async (res) => {
       if (res.confirm) {
-        await foodStore.deleteRecord(id)
-        loadRecords()
+        try {
+          await foodStore.deleteRecord(id)
+          await loadRecords()
+        } catch {
+          uni.showToast({ title: '删除失败', icon: 'none' })
+        }
       }
     },
   })
@@ -73,9 +89,7 @@ async function deleteRecord(id: string) {
       </view>
       <view class="current-date" @tap="goToday">
         <text class="date-text">{{ formatDate(currentDate, 'MM月DD日') }}</text>
-        <text class="today-tag" v-if="formatDate(currentDate) === formatDate(new Date())"
-          >今天</text
-        >
+        <text class="today-tag" v-if="selectedDateStr === formatDate(new Date())">今天</text>
       </view>
       <view class="arrow" @tap="changeDate(1)">
         <text>&gt;</text>
@@ -84,7 +98,7 @@ async function deleteRecord(id: string) {
 
     <view class="summary-card">
       <view class="summary-item">
-        <text class="value">{{ foodStore.todayCalories }}</text>
+        <text class="value">{{ selectedCalories }}</text>
         <text class="label">总热量(千卡)</text>
       </view>
       <view class="divider"></view>
@@ -106,7 +120,7 @@ async function deleteRecord(id: string) {
           </view>
           <view class="record-details">
             <text class="calories">{{ record.calories }} 千卡</text>
-            <text class="time">{{ formatDate(record.createdAt, 'HH:mm') }}</text>
+            <text class="time">{{ formatRecordTime(record) }}</text>
           </view>
         </view>
         <view class="record-action" @tap="deleteRecord(record._id)">

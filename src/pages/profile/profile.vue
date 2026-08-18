@@ -26,10 +26,6 @@ function goHistory() {
   uni.switchTab({ url: '/pages/history/history' })
 }
 
-function goStats() {
-  uni.switchTab({ url: '/pages/stats/stats' })
-}
-
 function showTips() {
   uni.showToast({ title: '饮食建议功能开发中', icon: 'none' })
 }
@@ -95,6 +91,11 @@ function handleLogout() {
       <view class="user-info" v-if="userStore.isLoggedIn">
         <text class="nickname">{{ userStore.profile?.nickname || '用户' }}</text>
         <text class="uid">ID: {{ userStore.openid.substring(0, 8) }}...</text>
+      </view>
+
+      <view class="user-info" v-else-if="userStore.isAnonymous">
+        <text class="nickname">H5 游客模式</text>
+        <text class="uid">数据仅保存在当前浏览器</text>
       </view>
 
       <view class="login-prompt" v-else>

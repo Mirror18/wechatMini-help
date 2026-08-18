@@ -10,9 +10,13 @@ export interface BaiduAITokenResponse {
 }
 
 export interface BaiduAIDishResponse {
-  log_id: number
-  result_num: number
-  result: BaiduAIDishResult[]
+  log_id?: number
+  result_num?: number
+  result?: BaiduAIDishResult[]
+  /** 百度接口错误码 */
+  error_code?: number
+  /** 百度接口错误信息 */
+  error_msg?: string
 }
 
 export interface BaiduAIDishResult {

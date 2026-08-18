@@ -9,6 +9,8 @@ exports.main = async (event, context) => {
   if (!OPENID) {
     return { code: 401, message: '请先登录', data: null };
   }
+
+  try {
     const userCollection = db.collection('users');
     
     switch (action) {
