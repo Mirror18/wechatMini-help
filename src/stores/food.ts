@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { getToday } from '@/utils/date'
 import type { FoodRecord, FoodStats } from '@/types'
 
 export const useFoodStore = defineStore('food', () => {
   const records = ref<FoodRecord[]>([])
   const todayRecords = computed(() => {
-    const today = new Date().toISOString().split('T')[0]
+    const today = getToday()
     return records.value.filter((r) => r.date === today)
   })
 
@@ -30,8 +31,12 @@ export const useFoodStore = defineStore('food', () => {
         },
       })
 
+      if (result.code !== 0) {
+        throw new Error(result.message || '添加记录失败')
+      }
+
       await fetchRecords(record.date)
-      return result._id
+      return result.data?._id
     } catch (error) {
       console.error('添加记录失败:', error)
       throw error
@@ -52,7 +57,11 @@ export const useFoodStore = defineStore('food', () => {
       })
 
       // 合并新记录，按 _id 去重，避免覆盖其他日期的记录
-      const incoming = result as FoodRecord[]
+      if (result.code !== 0) {
+        throw new Error(result.message || '获取记录失败')
+      }
+
+      const incoming = (result.data || []) as FoodRecord[]
       const existingMap = new Map(records.value.map((r: FoodRecord) => [r._id, r]))
       for (const record of incoming) {
         existingMap.set(record._id, record)
@@ -96,7 +105,11 @@ export const useFoodStore = defineStore('food', () => {
         },
       })
 
-      return result
+      if (result.code !== 0) {
+        throw new Error(result.message || '获取统计失败')
+      }
+
+      return result.data as FoodStats
     } catch (error) {
       console.error('获取统计失败:', error)
       throw error

@@ -1,0 +1,7 @@
+{
+  "name": "baidu-dish",
+  "version": "1.0.0",
+  "description": "Proxy Baidu dish recognition API for H5 and secure key storage",
+  "main": "index.js",
+  "dependencies": {}
+}
