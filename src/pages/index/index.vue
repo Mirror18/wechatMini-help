@@ -1,23 +1,42 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { useFoodStore, useUserStore } from '@/stores'
-import { chooseImage, compressImage } from '@/utils/image'
+import { chooseImage, compressImage, imageToBase64 } from '@/utils/image'
 import { getToday } from '@/utils/date'
-import { recognizeDish, imageToBase64 } from '@/api/baidu-ai'
+import { recognizeDish } from '@/api/baidu-ai'
 
 const foodStore = useFoodStore()
 const userStore = useUserStore()
 
 const loading = ref(false)
+const pageLoading = ref(false)
 const todayCalories = computed(() => foodStore.todayCalories)
 const calorieGoal = computed(() => userStore.profile?.dailyCalorieGoal || 2000)
 const progress = computed(() => Math.min((todayCalories.value / calorieGoal.value) * 100, 100))
 
-onMounted(async () => {
-  await foodStore.fetchRecords(getToday())
+async function initPage() {
+  try {
+    pageLoading.value = true
+    // H5 或未登录时自动兜底登录
+    if (!userStore.openid) {
+      await userStore.login()
+    }
+    await foodStore.fetchRecords(getToday())
+  } catch (error) {
+    console.error('首页初始化失败:', error)
+  } finally {
+    pageLoading.value = false
+  }
+}
+
+onShow(() => {
+  initPage()
 })
 
 async function handleTakePhoto() {
+  if (loading.value) return
+
   try {
     loading.value = true
 
@@ -25,7 +44,16 @@ async function handleTakePhoto() {
     const compressedPath = await compressImage(tempFilePath, 80)
     const base64 = await imageToBase64(compressedPath)
 
+    if (!base64) {
+      throw new Error('图片转 Base64 失败')
+    }
+
     const result = await recognizeDish(base64)
+
+    // 兼容百度接口错误返回
+    if (result.error_code) {
+      throw new Error(result.error_msg || '识别服务异常')
+    }
 
     if (result.result && result.result.length > 0) {
       uni.navigateTo({
@@ -45,7 +73,7 @@ async function handleTakePhoto() {
   } catch (error) {
     console.error('识别失败:', error)
     uni.showToast({
-      title: '识别失败，请重试',
+      title: (error as Error).message || '识别失败，请重试',
       icon: 'none',
     })
   } finally {
@@ -90,7 +118,7 @@ async function handleTakePhoto() {
     </view>
 
     <view class="action-area">
-      <button class="capture-btn" :loading="loading" @tap="handleTakePhoto">
+      <button class="capture-btn" :loading="loading" :disabled="loading" @tap="handleTakePhoto">
         <text class="btn-icon">📸</text>
         <text class="btn-text">拍照识别食物</text>
       </button>
@@ -105,6 +133,10 @@ async function handleTakePhoto() {
         </view>
         <text class="record-calories">{{ record.calories }} 千卡</text>
       </view>
+    </view>
+
+    <view class="loading-mask" v-if="pageLoading">
+      <text>加载中...</text>
     </view>
   </view>
 </template>
@@ -235,6 +267,10 @@ async function handleTakePhoto() {
   border: none;
 }
 
+.capture-btn[disabled] {
+  opacity: 0.7;
+}
+
 .btn-icon {
   font-size: 80rpx;
   margin-bottom: 10rpx;
@@ -292,5 +328,18 @@ async function handleTakePhoto() {
   font-size: 28rpx;
   color: #4caf50;
   font-weight: bold;
+}
+
+.loading-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 </style>

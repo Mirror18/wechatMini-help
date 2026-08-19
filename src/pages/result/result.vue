@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useFoodStore, useUserStore } from '@/stores'
 import { getToday } from '@/utils/date'
+import { estimateNutrition } from '@/utils/nutrition'
 import type { BaiduAIDishResult, MealType } from '@/types'
 
 const foodStore = useFoodStore()
@@ -14,12 +15,22 @@ const mealType = ref<MealType>('lunch')
 const saving = ref(false)
 
 onMounted(() => {
-  const pages = getCurrentPages()
-  const currentPage = pages[pages.length - 1] as any
-  const data = JSON.parse(decodeURIComponent(currentPage.options?.data || '{}'))
+  try {
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1] as any
+    const raw = currentPage.options?.data || '{}'
+    const data = JSON.parse(decodeURIComponent(raw))
 
-  image.value = data.image || ''
-  results.value = data.results || []
+    image.value = data.image || ''
+    results.value = Array.isArray(data.results) ? data.results : []
+
+    if (!results.value.length) {
+      uni.showToast({ title: '无识别结果', icon: 'none' })
+    }
+  } catch (error) {
+    console.error('解析识别结果失败:', error)
+    uni.showToast({ title: '页面参数错误', icon: 'none' })
+  }
 })
 
 const selectedResult = computed(() => results.value[selectedIndex.value])
@@ -32,20 +43,46 @@ function selectMealType(type: MealType) {
   mealType.value = type
 }
 
+/**
+ * 将本地临时图片上传到 uniCloud 存储，避免临时路径过期导致历史记录无法展示。
+ * H5/小程序均支持 uniCloud.uploadFile。
+ */
+async function uploadImage(filePath: string): Promise<string> {
+  if (!filePath) return ''
+
+  // H5 blob URL 或本地缓存路径直接上传可能失败，先容错返回原路径
+  try {
+    const ext = filePath.includes('.') ? filePath.split('.').pop() : 'jpg'
+    const cloudPath = `food-images/${userStore.openid || 'anonymous'}/${Date.now()}.${ext}`
+    const uploadRes = await uniCloud.uploadFile({
+      filePath,
+      cloudPath,
+    })
+    return uploadRes.fileID || filePath
+  } catch (error) {
+    console.warn('图片上传失败，使用原路径:', error)
+    return filePath
+  }
+}
+
 async function handleSave() {
   if (!selectedResult.value) return
 
   try {
     saving.value = true
 
+    const calories = parseFloat(selectedResult.value.calorie) || 0
+    const nutrition = estimateNutrition(selectedResult.value.name, calories)
+    const imageUrl = await uploadImage(image.value)
+
     await foodStore.addRecord({
       userId: userStore.openid,
       foodName: selectedResult.value.name,
-      calories: parseFloat(selectedResult.value.calorie) || 0,
-      protein: 0,
-      fat: 0,
-      carbs: 0,
-      imageUrl: image.value,
+      calories,
+      protein: nutrition.protein,
+      fat: nutrition.fat,
+      carbs: nutrition.carbs,
+      imageUrl,
       confidence: parseFloat(selectedResult.value.probability) || 0,
       mealType: mealType.value,
       date: getToday(),
@@ -62,7 +99,7 @@ async function handleSave() {
   } catch (error) {
     console.error('保存失败:', error)
     uni.showToast({
-      title: '保存失败',
+      title: (error as Error).message || '保存失败',
       icon: 'none',
     })
   } finally {
@@ -79,7 +116,7 @@ async function handleSave() {
 
     <view class="results-section">
       <view class="section-title">识别结果</view>
-      <scroll-view scroll-x class="results-scroll">
+      <scroll-view scroll-x class="results-scroll" v-if="results.length > 0">
         <view
           v-for="(item, index) in results"
           :key="index"
@@ -91,6 +128,9 @@ async function handleSave() {
           <text class="confidence">{{ (parseFloat(item.probability) * 100).toFixed(0) }}%</text>
         </view>
       </scroll-view>
+      <view class="empty-tip" v-else>
+        <text>未识别到可选结果</text>
+      </view>
     </view>
 
     <view class="detail-card" v-if="selectedResult">
@@ -224,6 +264,13 @@ async function handleSave() {
 
 .result-card.active .confidence {
   color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-tip {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }
 
 .detail-card {

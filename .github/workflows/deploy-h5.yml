@@ -1,0 +1,65 @@
+name: Deploy H5
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-h5:
+    name: Build and Deploy H5
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Downgrade npm to avoid Exit handler never called bug
+        run: npm install -g npm@10.5.0
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build H5
+        run: npm run build:h5
+        env:
+          VITE_BAIDU_AI_API_KEY: ${{ secrets.VITE_BAIDU_AI_API_KEY }}
+          VITE_BAIDU_AI_SECRET_KEY: ${{ secrets.VITE_BAIDU_AI_SECRET_KEY }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+
+      - name: Deploy to server via rsync
+        uses: burnett01/rsync-deployments@6.0.0
+        with:
+          switches: -avzr --delete
+          path: dist/build/h5/
+          remote_path: ${{ secrets.H5_REMOTE_PATH }}
+          remote_host: ${{ secrets.H5_REMOTE_HOST }}
+          remote_port: ${{ secrets.H5_REMOTE_PORT || '22' }}
+          remote_user: ${{ secrets.H5_REMOTE_USER }}
+          remote_key: ${{ secrets.H5_REMOTE_KEY }}
+
+      - name: Check if reload command is configured
+        id: reload-check
+        run: |
+          if [ -n "$RELOAD_CMD" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          RELOAD_CMD: ${{ secrets.H5_RELOAD_COMMAND }}
+
+      - name: Notify server to reload (optional)
+        uses: appleboy/ssh-action@v1.0.0
+        if: ${{ steps.reload-check.outputs.configured == 'true' }}
+        with:
+          host: ${{ secrets.H5_REMOTE_HOST }}
+          port: ${{ secrets.H5_REMOTE_PORT || '22' }}
+          username: ${{ secrets.H5_REMOTE_USER }}
+          key: ${{ secrets.H5_REMOTE_KEY }}
+          script: ${{ secrets.H5_RELOAD_COMMAND }}

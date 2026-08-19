@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useFoodStore } from '@/stores'
 import { formatDate, getWeekRange, getMonthRange } from '@/utils/date'
 import type { FoodStats } from '@/types'
@@ -7,7 +7,7 @@ import type { FoodStats } from '@/types'
 const foodStore = useFoodStore()
 
 const period = ref<'week' | 'month'>('week')
-const stats = ref<FoodStats | null>(null)
+const statsData = ref<FoodStats | null>(null)
 const loading = ref(false)
 
 onMounted(() => {
@@ -30,9 +30,10 @@ async function loadStats() {
       endDate = range.end
     }
 
-    stats.value = await foodStore.getStats(startDate, endDate)
+    statsData.value = await foodStore.getStats(startDate, endDate)
   } catch (error) {
     console.error('获取统计失败:', error)
+    uni.showToast({ title: '获取统计失败', icon: 'none' })
   } finally {
     loading.value = false
   }
@@ -44,14 +45,25 @@ function switchPeriod(p: 'week' | 'month') {
 }
 
 function getMaxCalories(): number {
-  if (!stats.value?.dailyBreakdown?.length) return 2000
-  return Math.max(...stats.value.dailyBreakdown.map((d) => d.calories), 2000)
+  if (!statsData.value?.dailyBreakdown?.length) return 2000
+  return Math.max(...statsData.value.dailyBreakdown.map((d) => d.calories), 2000)
 }
 
 function getBarHeight(calories: number): string {
   const max = getMaxCalories()
   const height = (calories / max) * 200
   return height + 'rpx'
+}
+
+const totalMacros = computed(() => {
+  if (!statsData.value) return 0
+  return statsData.value.totalProtein + statsData.value.totalFat + statsData.value.totalCarbs
+})
+
+function getMacroRatio(value: number): string {
+  const total = totalMacros.value
+  if (total <= 0) return '0%'
+  return (value / total) * 100 + '%'
 }
 </script>
 
@@ -66,38 +78,38 @@ function getBarHeight(calories: number): string {
       </view>
     </view>
 
-    <view class="summary-card" v-if="stats">
+    <view class="summary-card" v-if="statsData">
       <view class="summary-row">
         <view class="summary-item">
-          <text class="value">{{ stats.totalCalories }}</text>
+          <text class="value">{{ statsData.totalCalories }}</text>
           <text class="label">总热量(千卡)</text>
         </view>
         <view class="summary-item">
-          <text class="value">{{ stats.avgCalories }}</text>
+          <text class="value">{{ statsData.avgCalories }}</text>
           <text class="label">日均热量</text>
         </view>
       </view>
       <view class="summary-row">
         <view class="summary-item">
-          <text class="value">{{ stats.totalProtein.toFixed(1) }}</text>
+          <text class="value">{{ statsData.totalProtein.toFixed(1) }}</text>
           <text class="label">蛋白质(g)</text>
         </view>
         <view class="summary-item">
-          <text class="value">{{ stats.totalFat.toFixed(1) }}</text>
+          <text class="value">{{ statsData.totalFat.toFixed(1) }}</text>
           <text class="label">脂肪(g)</text>
         </view>
         <view class="summary-item">
-          <text class="value">{{ stats.totalCarbs.toFixed(1) }}</text>
+          <text class="value">{{ statsData.totalCarbs.toFixed(1) }}</text>
           <text class="label">碳水(g)</text>
         </view>
       </view>
     </view>
 
-    <view class="chart-card" v-if="stats?.dailyBreakdown">
+    <view class="chart-card" v-if="statsData?.dailyBreakdown?.length">
       <view class="chart-title">热量趋势</view>
       <view class="chart-container">
         <view class="chart-bars">
-          <view class="bar-group" v-for="item in stats.dailyBreakdown" :key="item.date">
+          <view class="bar-group" v-for="item in statsData.dailyBreakdown" :key="item.date">
             <view class="bar-value">{{ item.calories }}</view>
             <view class="bar" :style="{ height: getBarHeight(item.calories) }"></view>
             <view class="bar-label">{{ formatDate(item.date, 'MM/DD') }}</view>
@@ -106,64 +118,49 @@ function getBarHeight(calories: number): string {
       </view>
     </view>
 
-    <view class="nutrition-card" v-if="stats">
+    <view class="nutrition-card" v-if="statsData">
       <view class="card-title">营养成分占比</view>
       <view class="nutrition-bars">
         <view class="nutrition-item">
           <view class="nutrition-header">
             <text class="name">蛋白质</text>
-            <text class="value">{{ stats.totalProtein.toFixed(1) }}g</text>
+            <text class="value">{{ statsData.totalProtein.toFixed(1) }}g</text>
           </view>
           <view class="progress-bar">
             <view
               class="progress-fill protein"
-              :style="{
-                width:
-                  (stats.totalProtein / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
-                    100 +
-                  '%',
-              }"
+              :style="{ width: getMacroRatio(statsData.totalProtein) }"
             ></view>
           </view>
         </view>
         <view class="nutrition-item">
           <view class="nutrition-header">
             <text class="name">脂肪</text>
-            <text class="value">{{ stats.totalFat.toFixed(1) }}g</text>
+            <text class="value">{{ statsData.totalFat.toFixed(1) }}g</text>
           </view>
           <view class="progress-bar">
             <view
               class="progress-fill fat"
-              :style="{
-                width:
-                  (stats.totalFat / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
-                    100 +
-                  '%',
-              }"
+              :style="{ width: getMacroRatio(statsData.totalFat) }"
             ></view>
           </view>
         </view>
         <view class="nutrition-item">
           <view class="nutrition-header">
             <text class="name">碳水化合物</text>
-            <text class="value">{{ stats.totalCarbs.toFixed(1) }}g</text>
+            <text class="value">{{ statsData.totalCarbs.toFixed(1) }}g</text>
           </view>
           <view class="progress-bar">
             <view
               class="progress-fill carbs"
-              :style="{
-                width:
-                  (stats.totalCarbs / (stats.totalProtein + stats.totalFat + stats.totalCarbs)) *
-                    100 +
-                  '%',
-              }"
+              :style="{ width: getMacroRatio(statsData.totalCarbs) }"
             ></view>
           </view>
         </view>
       </view>
     </view>
 
-    <view class="empty-state" v-if="!stats && !loading">
+    <view class="empty-state" v-if="!statsData && !loading">
       <text class="empty-icon">📊</text>
       <text class="empty-text">暂无统计数据</text>
       <text class="empty-hint">开始记录饮食后查看统计</text>
